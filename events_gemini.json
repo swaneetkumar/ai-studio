@@ -1,0 +1,40 @@
+{
+  "environment": "spacious modern minimalist room with concrete floor",
+  "events": [
+    {
+      "type": "footstep",
+      "time": 0.5,
+      "material": "concrete",
+      "intensity": "low",
+      "prompt": "Quiet footsteps walking across a smooth concrete floor in a modern spacious room"
+    },
+    {
+      "type": "glass_pick_up",
+      "time": 2.8,
+      "material": "glass and wood",
+      "intensity": "low",
+      "prompt": "Fingers grasping and lifting an empty glass cup from a wooden table surface"
+    },
+    {
+      "type": "whoosh",
+      "time": 4.8,
+      "material": "air",
+      "intensity": "medium",
+      "prompt": "Fast downward whoosh of an arm forcefully swinging a glass cup down"
+    },
+    {
+      "type": "glass_smash",
+      "time": 5.4,
+      "material": "glass and wood",
+      "intensity": "high",
+      "prompt": "Violent impact of a thick glass tumbler smashing and exploding on a solid table"
+    },
+    {
+      "type": "glass_tinkle",
+      "time": 6.5,
+      "material": "glass",
+      "intensity": "medium",
+      "prompt": "Delicate slow-motion tinkling and scattering of shattered glass shards bouncing on a tabletop"
+    }
+  ]
+}

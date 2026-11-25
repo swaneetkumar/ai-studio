@@ -1,0 +1,31 @@
+{
+  "video": "videos/test1.mp4.mp4",
+  "fps": 24,
+  "events": [
+    {
+      "id": 1,
+      "type": "whoosh",
+      "time": 4.88,
+      "frame": 117,
+      "material": "air",
+      "prompt": "fast whoosh of an arm swinging through the air, quiet kitchen"
+    },
+    {
+      "id": 2,
+      "type": "glass_smash",
+      "time": 5.58,
+      "frame": 134,
+      "material": "glass",
+      "prompt": "single drinking glass shattering on a dark wooden table, sharp impact, indoor room"
+    },
+    {
+      "id": 3,
+      "type": "glass_tinkle",
+      "time": 5.62,
+      "frame": 135,
+      "material": "glass",
+      "prompt": "small glass shards scattering and tinkling on a table, short decay"
+    }
+  ]
+}
+

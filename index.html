@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Foley Studio — Automatic Sound Effects Synced to Video</title>
+  <meta name="description" content="Generate realistic, frame accurate Foley sound effects for silent video clips using visual scene recognition, optical flow impact snapping, and AI audio synthesis.">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="AI Foley Studio — Automatic Sound Effects Synced to Video">
+  <meta property="og:description" content="Turn raw silent video into studio grade synchronized Foley sound effects in seconds.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="outputs/motion_plot.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232A221E'/><path d='M9 16h2v6H9zm4-8h2v14h-2zm4 4h2v10h-2zm4 2h2v6h-2z' fill='%23B8542F'/></svg>">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- AEO / FAQ Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What video formats and file sizes are supported?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You can upload MP4, MOV, WebM, or MKV files up to 100 megabytes and up to 60 seconds in duration."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does the system ensure audio hits the exact frame?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Visual models detect physical contact descriptions and estimated times, while an optical flow engine scans pixel velocity within 0.5 seconds of each event to lock the audio onset to the exact collision frame."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which audio generation engines power Foley Studio?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Foley Studio combines AudioLDM for localized prompt driven effects and MMAudio for synchronized multi chunk video generation at 44.1 kHz."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I own the rights to the generated Foley audio?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. All generated sound effects and mixed video exports come with a royalty free commercial license suitable for YouTube, independent films, broadcast, and games."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Accessible Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Floating Navigation Bar -->
+  <div class="nav-wrapper">
+    <nav class="navbar" aria-label="Main Navigation">
+      <a href="#" class="nav-brand" aria-label="Foley Studio Home">
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+        </div>
+        <span class="brand-name">Foley Studio</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#how-it-works" class="nav-link">How it works</a></li>
+        <li><a href="#benefits" class="nav-link">Benefits</a></li>
+        <li><a href="#faq" class="nav-link">FAQ</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="http://127.0.0.1:7860" target="_blank" rel="noopener" class="btn-primary button-sm">
+          <span>Launch studio</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+
+      <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Mobile Fullscreen Navigation Panel -->
+  <div class="mobile-menu" aria-label="Mobile Navigation Menu">
+    <ul class="mobile-nav-links">
+      <li><a href="#how-it-works" class="mobile-nav-link">How it works</a></li>
+      <li><a href="#benefits" class="mobile-nav-link">Benefits</a></li>
+      <li><a href="#faq" class="mobile-nav-link">FAQ</a></li>
+      <li>
+        <a href="http://127.0.0.1:7860" target="_blank" rel="noopener" class="btn-primary button-md" style="margin-top: 16px;">
+          <span>Launch studio</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Page Content -->
+  <main id="main-content">
+
+    <!-- HERO SECTION -->
+    <section class="hero-section" aria-labelledby="hero-title">
+      <div class="container">
+        <div class="hero-content">
+          <div class="eyebrow-pill caption-1">
+            <span class="eyebrow-dot"></span>
+            <span>Computer vision and acoustic synthesis</span>
+          </div>
+
+          <h1 id="hero-title" class="heading-1 hero-heading">
+            <span class="hero-gradient-text">Studio grade Foley sound for silent video in seconds</span>
+          </h1>
+
+          <p class="body-2 hero-subheading">
+            Upload any video clip. Vision models identify physical contact, optical flow snaps impacts to the exact frame, and generative acoustic engines synthesize matched audio.
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="http://127.0.0.1:7860" target="_blank" rel="noopener" class="btn-primary button-md">
+              <span>Generate Foley now</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Interactive Studio Mockup Card -->
+        <div class="studio-mockup-card reveal-on-scroll" aria-label="Interactive Foley Studio interface demo">
+          <div class="mockup-header">
+            <div class="mockup-title-group">
+              <div class="mockup-window-dots">
+                <div class="window-dot"></div>
+                <div class="window-dot"></div>
+                <div class="window-dot"></div>
+              </div>
+              <span class="title-4" style="color: var(--color-text-secondary);">foley_session_render.mp4</span>
+            </div>
+
+            <div class="mockup-controls">
+              <div class="toggle-pill" role="group" aria-label="Audio comparison toggle">
+                <button type="button" id="toggle-raw" class="toggle-btn" aria-pressed="false">Raw silent video</button>
+                <button type="button" id="toggle-foley" class="toggle-btn active" aria-pressed="true">AI Foley Studio</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-body">
+            <!-- Video Canvas Viewport -->
+            <div class="video-preview-box">
+              <div class="video-canvas-placeholder">
+                <div class="video-scene-indicator">
+                  <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background-color:#22C55E;"></span>
+                  <span id="scene-status-text">MMAudio Foley: 44.1 kHz active</span>
+                </div>
+
+                <button type="button" class="play-state-badge" id="mockup-play-btn" aria-label="Play or pause audio preview">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="6 4 20 12 6 20 6 4"></polygon>
+                  </svg>
+                </button>
+
+                <!-- Interactive Waveform Timeline -->
+                <div class="waveform-timeline">
+                  <div class="waveform-bars" id="waveform-bar-container">
+                    <div class="wave-bar" style="height: 35%;"></div>
+                    <div class="wave-bar" style="height: 55%;"></div>
+                    <div class="wave-bar" style="height: 80%;"></div>
+                    <div class="wave-bar" style="height: 40%;"></div>
+                    <div class="wave-bar" style="height: 95%;"></div>
+                    <div class="wave-bar" style="height: 65%;"></div>
+                    <div class="wave-bar" style="height: 45%;"></div>
+                    <div class="wave-bar" style="height: 75%;"></div>
+                    <div class="wave-bar" style="height: 90%;"></div>
+                    <div class="wave-bar" style="height: 60%;"></div>
+                    <div class="wave-bar" style="height: 30%;"></div>
+                    <div class="wave-bar" style="height: 85%;"></div>
+                    <div class="wave-bar" style="height: 50%;"></div>
+                    <div class="wave-bar" style="height: 70%;"></div>
+                    <div class="wave-bar" style="height: 100%;"></div>
+                    <div class="wave-bar" style="height: 60%;"></div>
+                    <div class="wave-bar" style="height: 40%;"></div>
+                    <div class="wave-bar" style="height: 80%;"></div>
+                    <div class="wave-bar" style="height: 35%;"></div>
+                    <div class="wave-bar" style="height: 65%;"></div>
+                  </div>
+                  <div class="timeline-info">
+                    <span id="timeline-status-label">AudioLDM + MMAudio track (0.95 peak limited)</span>
+                    <span>00:08.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Optical Flow & Sound Event Inspection Panel -->
+            <div class="mockup-sidebar">
+              <span class="title-4" style="color: var(--color-text-secondary); margin-bottom: 4px;">Detected Physical Impacts</span>
+
+              <div class="event-item active">
+                <div class="event-tag">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>glass_smash</span>
+                </div>
+                <div class="event-time">5.54s (snapped)</div>
+              </div>
+
+              <div class="event-item">
+                <div class="event-tag">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  <span>arm_movement</span>
+                </div>
+                <div class="event-time">4.88s (snapped)</div>
+              </div>
+
+              <div class="event-item">
+                <div class="event-tag">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  <span>shard_scatter</span>
+                </div>
+                <div class="event-time">6.12s (snapped)</div>
+              </div>
+
+              <div style="margin-top: auto; padding-top: 12px; border-top: 1px solid var(--color-border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                <span class="caption-4" style="color: var(--color-text-muted);">Reverb preset</span>
+                <span class="caption-3" style="color: var(--color-accent-primary);">Small room acoustics</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROBLEM TO SOLUTION SECTION -->
+    <section class="section-spacing" aria-labelledby="comparison-title">
+      <div class="container">
+        <div class="problem-solution-card reveal-on-scroll">
+          <div class="problem-col">
+            <div class="tag-label tag-problem">The old workflow</div>
+            <h2 class="heading-5" style="color: var(--color-text-primary);">Manual sound effect hunting</h2>
+            <p class="body-3" style="color: var(--color-text-secondary);">
+              Video editors spend hours browsing cluttered stock libraries, dragging loose WAV files onto the timeline, and manually nudging sound transients frame by frame to match on screen collisions.
+            </p>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <li class="body-5" style="color: var(--color-text-secondary); display: flex; align-items: center; gap: 8px;">
+                <span style="color: #991B1B; font-weight: bold;">✕</span> Over four hours spent per short scene
+              </li>
+              <li class="body-5" style="color: var(--color-text-secondary); display: flex; align-items: center; gap: 8px;">
+                <span style="color: #991B1B; font-weight: bold;">✕</span> Footsteps drift out of synchronization
+              </li>
+              <li class="body-5" style="color: var(--color-text-secondary); display: flex; align-items: center; gap: 8px;">
+                <span style="color: #991B1B; font-weight: bold;">✕</span> Mismatched room reverb breaks immersion
+              </li>
+            </ul>
+          </div>
+
+          <div class="solution-col">
+            <div class="tag-label tag-solution">The Foley Studio way</div>
+            <h2 class="heading-5" style="color: var(--color-accent-primary);">Automated physical alignment</h2>
+            <p class="body-3" style="color: var(--color-text-secondary);">
+              Drop your silent video file. Visual models recognize materials, optical flow calculates velocity spikes to lock impact frames, and neural sound models generate acoustic audio directly for the scene.
+            </p>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <li class="body-5" style="color: var(--color-text-primary); display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-accent-primary); font-weight: bold;">✓</span> Full scene audio synthesized in thirty seconds
+              </li>
+              <li class="body-5" style="color: var(--color-text-primary); display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-accent-primary); font-weight: bold;">✓</span> Optical flow locks transient to exact impact frame
+              </li>
+              <li class="body-5" style="color: var(--color-text-primary); display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-accent-primary); font-weight: bold;">✓</span> Synthetic convolution applies authentic room acoustics
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- B11 MANDATORY TAGLINE REVEAL SECTION -->
+    <section class="tagline-reveal-section" aria-label="Product Philosophy">
+      <div class="container tagline-container">
+        <h2 class="tagline-text">
+          <span class="tagline-word">Every</span>
+          <span class="tagline-word">footstep,</span>
+          <span class="tagline-word">glass</span>
+          <span class="tagline-word">shatter,</span>
+          <span class="tagline-word">and</span>
+          <span class="tagline-word">heavy</span>
+          <span class="tagline-word">wooden</span>
+          <span class="tagline-word">door</span>
+          <span class="tagline-word">slam</span>
+          <span class="tagline-word">generated</span>
+          <span class="tagline-word">to</span>
+          <span class="tagline-word">match</span>
+          <span class="tagline-word">the</span>
+          <span class="tagline-word">physical</span>
+          <span class="tagline-word">material</span>
+          <span class="tagline-word">on</span>
+          <span class="tagline-word">screen.</span>
+        </h2>
+      </div>
+    </section>
+
+    <!-- BENEFITS SECTION -->
+    <section id="benefits" class="section-spacing" aria-labelledby="benefits-title">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <h2 id="benefits-title" class="heading-2">Built for physical sound realism</h2>
+          <p class="body-3">Acoustic precision designed specifically for the rigorous demands of video editing and animation.</p>
+        </div>
+
+        <div class="benefits-grid">
+          <!-- Benefit 1 -->
+          <div class="benefit-card reveal-on-scroll">
+            <div class="benefit-icon-wrapper">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="22" y1="12" x2="18" y2="12"></line>
+                <line x1="6" y1="12" x2="2" y2="12"></line>
+                <line x1="12" y1="6" x2="12" y2="2"></line>
+                <line x1="12" y1="22" x2="12" y2="18"></line>
+              </svg>
+            </div>
+            <h3 class="title-1">Precise frame alignment</h3>
+            <p class="body-3" style="color: var(--color-text-secondary);">
+              Optical flow analyzes pixel velocity around visual events, snapping sound onsets to the exact frame where objects make physical contact.
+            </p>
+          </div>
+
+          <!-- Benefit 2 -->
+          <div class="benefit-card reveal-on-scroll">
+            <div class="benefit-icon-wrapper">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+            </div>
+            <h3 class="title-1">Material aware acoustic synthesis</h3>
+            <p class="body-3" style="color: var(--color-text-secondary);">
+              Vision intelligence identifies porcelain, heavy wood, metallic plates, and cloth textures to synthesize acoustic resonance that reflects actual materials.
+            </p>
+          </div>
+
+          <!-- Benefit 3 -->
+          <div class="benefit-card reveal-on-scroll">
+            <div class="benefit-icon-wrapper">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </svg>
+            </div>
+            <h3 class="title-1">Configurable acoustic environments</h3>
+            <p class="body-3" style="color: var(--color-text-secondary);">
+              Tailor spatial sound with synthetic impulse responses. Select Dry Studio, Small Room, or Large Hall to mirror the physical dimensions of your scene.
+            </p>
+          </div>
+
+          <!-- Benefit 4 -->
+          <div class="benefit-card reveal-on-scroll">
+            <div class="benefit-icon-wrapper">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </div>
+            <h3 class="title-1">Full commercial export</h3>
+            <p class="body-3" style="color: var(--color-text-secondary);">
+              Export pristine 44.1 kHz 16 bit PCM audio tracks and combined high definition video ready for your non linear editing timeline without extra conversions.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS SECTION -->
+    <section id="how-it-works" class="section-spacing" aria-labelledby="steps-title">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <h2 id="steps-title" class="heading-2">How it works</h2>
+          <p class="body-3">Three clear steps from silent video upload to synchronized cinematic Foley.</p>
+        </div>
+
+        <div class="steps-grid">
+          <!-- Step 1 -->
+          <div class="step-card reveal-on-scroll">
+            <div class="step-number-badge">1</div>
+            <h3 class="title-1">Upload your footage</h3>
+            <p class="body-3" style="color: var(--color-text-secondary);">
+              Drop any silent MP4, MOV, or WebM video up to sixty seconds into the studio interface. Set your desired acoustic intensity and room style.
+            </p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-card reveal-on-scroll">
+            <div class="step-number-badge">2</div>
+            <h3 class="title-1">Vision analysis and optical snapping</h3>
+            <p class="body-3" style="color: var(--color-text-secondary);">
+              Gemini Vision logs physical contact events while optical flow algorithms calculate precise frame velocities to snap each event to the exact collision moment.
+            </p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-card reveal-on-scroll">
+            <div class="step-number-badge">3</div>
+            <h3 class="title-1">Acoustic synthesis and mastering</h3>
+            <p class="body-3" style="color: var(--color-text-secondary);">
+              Generative engines synthesize high fidelity audio, apply environmental convolution reverb, and master the output with peak limiting at 0.95.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section id="faq" class="section-spacing" aria-labelledby="faq-title">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <h2 id="faq-title" class="heading-2">Frequently asked questions</h2>
+          <p class="body-3">Answers to common questions about video formats, sync technology, and licensing.</p>
+        </div>
+
+        <div class="faq-container">
+          <!-- Question 1 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span class="title-2">What video formats and file sizes are supported?</span>
+              <span class="faq-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer">
+              <p class="body-5">You can upload MP4, MOV, WebM, or MKV files up to 100 megabytes and up to 60 seconds in duration. Longer video clips can be trimmed inside the studio prior to processing.</p>
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span class="title-2">How does the system ensure audio hits the exact frame?</span>
+              <span class="faq-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer">
+              <p class="body-5">Visual models detect physical contact descriptions and estimated times, while an optical flow engine scans pixel velocity within 0.5 seconds of each event to lock the audio onset to the exact collision frame.</p>
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span class="title-2">Which audio generation engines power Foley Studio?</span>
+              <span class="faq-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer">
+              <p class="body-5">Foley Studio combines AudioLDM for localized prompt driven effects and MMAudio for synchronized multi chunk video generation at 44.1 kHz.</p>
+            </div>
+          </div>
+
+          <!-- Question 4 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span class="title-2">Do I own the rights to the generated Foley audio?</span>
+              <span class="faq-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer">
+              <p class="body-5">Yes. All generated sound effects and mixed video exports come with a royalty free commercial license suitable for YouTube, independent films, broadcast, and games.</p>
+            </div>
+          </div>
+
+          <!-- Question 5 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span class="title-2">Can I adjust the room acoustics and reverb?</span>
+              <span class="faq-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer">
+              <p class="body-5">Yes. You can select between Dry Studio, Small Room, Large Hall, or Auto Reverb, where scene context automatically determines acoustic room decay.</p>
+            </div>
+          </div>
+
+          <!-- Question 6 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span class="title-2">Can I download isolated sound effect stems?</span>
+              <span class="faq-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer">
+              <p class="body-5">Yes. You can export the combined video, the final master audio mix, or isolated candidate WAV stems for each detected event.</p>
+            </div>
+          </div>
+
+          <!-- Question 7 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span class="title-2">What happens with fast motion or low light footage?</span>
+              <span class="faq-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer">
+              <p class="body-5">The optical flow engine normalizes lighting across consecutive frames. When motion blur is present, vision models cross reference surrounding frames to place the impact accurately.</p>
+            </div>
+          </div>
+
+          <!-- Question 8 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span class="title-2">Can I run the sound engines locally on my workstation?</span>
+              <span class="faq-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer">
+              <p class="body-5">Yes. The local pipeline runs on any NVIDIA GPU with 8 gigabytes of VRAM or connects remotely to cloud GPU nodes via standard API endpoints.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RISK REVERSAL & FINAL CTA SECTION -->
+    <section class="container">
+      <!-- Risk Reversal Banner -->
+      <div class="risk-reversal-banner reveal-on-scroll">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-accent-primary);">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span class="body-2">No subscription required to start. Export three video passes free with zero watermarks. Keep every track you generate.</span>
+      </div>
+
+      <!-- Final CTA Section -->
+      <div class="final-cta-section reveal-on-scroll">
+        <div class="final-cta-content">
+          <h2 class="heading-2">Add physical sound to your silent footage today</h2>
+          <p class="body-2" style="color: var(--color-text-secondary);">
+            Turn raw silent video into synchronized cinematic audio in your browser.
+          </p>
+          <a href="http://127.0.0.1:7860" target="_blank" rel="noopener" class="btn-primary button-md">
+            <span>Generate Foley now</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SITE FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand-col">
+          <a href="#" class="nav-brand" style="margin-bottom: 8px;">
+            <div class="brand-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+              </svg>
+            </div>
+            <span class="brand-name">Foley Studio</span>
+          </a>
+          <p class="body-6">
+            Frame accurate Foley sound generation powered by computer vision, optical flow tracking, and acoustic synthesis.
+          </p>
+        </div>
+
+        <div class="footer-nav-groups">
+          <div class="footer-nav-col">
+            <span class="footer-col-title title-4">Product</span>
+            <ul class="footer-links">
+              <li><a href="#how-it-works" class="footer-link">How it works</a></li>
+              <li><a href="#benefits" class="footer-link">Benefits</a></li>
+              <li><a href="http://127.0.0.1:7860" target="_blank" rel="noopener" class="footer-link">Studio app</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-nav-col">
+            <span class="footer-col-title title-4">Resources</span>
+            <ul class="footer-links">
+              <li><a href="#faq" class="footer-link">FAQ</a></li>
+              <li><a href="#" class="footer-link">Acoustic models</a></li>
+              <li><a href="#" class="footer-link">API reference</a></li>
+              <li><a href="#" class="footer-link">System status</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-nav-col">
+            <span class="footer-col-title title-4">Legal</span>
+            <ul class="footer-links">
+              <li><a href="#" class="footer-link">Commercial license</a></li>
+              <li><a href="#" class="footer-link">Privacy policy</a></li>
+              <li><a href="#" class="footer-link">Terms of service</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span class="caption-2">© 2026 Foley Studio. All rights reserved.</span>
+        <button type="button" class="back-to-top caption-2" aria-label="Back to top">
+          <span>Back to top</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="script.js"></script>
+</body>
+</html>
+

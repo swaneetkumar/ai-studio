@@ -1,0 +1,57 @@
+{
+  "video": "videos/test1.mp4.mp4",
+  "fps": 24.0,
+  "environment": "spacious modern minimalist room with concrete floor",
+  "events": [
+    {
+      "id": 1,
+      "type": "footstep",
+      "time": 0.5,
+      "frame": 12,
+      "material": "concrete",
+      "intensity": "low",
+      "prompt": "Quiet footsteps walking across a smooth concrete floor in a modern spacious room",
+      "snapped": false
+    },
+    {
+      "id": 2,
+      "type": "glass_pick_up",
+      "time": 2.8,
+      "frame": 67,
+      "material": "glass and wood",
+      "intensity": "low",
+      "prompt": "Fingers grasping and lifting an empty glass cup from a wooden table surface",
+      "snapped": false
+    },
+    {
+      "id": 3,
+      "type": "whoosh",
+      "time": 4.88,
+      "frame": 117,
+      "material": "air",
+      "intensity": "medium",
+      "prompt": "Fast downward whoosh of an arm forcefully swinging a glass cup down",
+      "snapped": true
+    },
+    {
+      "id": 4,
+      "type": "glass_smash",
+      "time": 5.54,
+      "frame": 133,
+      "material": "glass and wood",
+      "intensity": "high",
+      "prompt": "Violent impact of a thick glass tumbler smashing and exploding on a solid table",
+      "snapped": true
+    },
+    {
+      "id": 5,
+      "type": "glass_tinkle",
+      "time": 6.5,
+      "frame": 156,
+      "material": "glass",
+      "intensity": "medium",
+      "prompt": "Delicate slow-motion tinkling and scattering of shattered glass shards bouncing on a tabletop",
+      "snapped": false
+    }
+  ]
+}
